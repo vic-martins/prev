@@ -10,7 +10,6 @@ import plotly.graph_objects as go
 from plotly.colors import n_colors
 import plotly.express as px
 import plotly.offline as pyo
-pyo.init_notebook_mode()
 
 import streamlit as st
 
