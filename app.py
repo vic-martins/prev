@@ -95,16 +95,33 @@ mae = 3613
 fig = go.Figure()
 
 limite = st.number_input("Limite", value = 25000, min_value = 100, max_value = 1000000, step = 100)
+achatar = st.checkbox('Achatar a curva?')
 
 fig.add_hline(y=limite,
               line_dash='dot',
               annotation_text='Limite', 
               annotation_position='bottom right')
 
+def Redistribui(col, df, limite):
+    difs = 0
+    df['topou'] = 0
+    for data in df['data'][::-1]:
+        pred = df[col].loc[df['data']==data].item()
+        if pred > limite:
+            df.loc[df['data']==data, 'topou'] = 1
+            df.loc[df['data']==data, col] = limite
+            dif = pred - limite
+            difs+=dif
+    return int(difs)
+
 def GeraCurva(cen, valor, cor):
     df23['dist_' + cen] = df23['geom_dist'] * valor
     df23['yhat_upper_' + cen] = df23['dist_' + cen] + mae
     df23['yhat_lower_' + cen] = df23['dist_' + cen] - mae
+    if achatar==True:
+        Redistribui('dist_' + cen, df23, limite)
+        Redistribui('yhat_upper_' + cen, df23, limite)
+        Redistribui('yhat_lower_' + cen, df23, limite)
     df23.loc[df23['yhat_lower_' + cen] < 0, 'yhat_lower_' + cen] = 0
     fig.add_trace(go.Line(x=df23['data'], 
                           y=df23['dist_' + cen], 
@@ -120,7 +137,7 @@ def GeraCurva(cen, valor, cor):
                           line=dict(color=cor, dash='dot'),
                           opacity=0.35,
                           showlegend=False))
-
+    
 if st.button("Gerar distribuições"):
         GeraCurva(cen1, valor1, 'deeppink')
         GeraCurva(cen2, valor2, 'red')
@@ -129,4 +146,3 @@ if st.button("Gerar distribuições"):
                   height=500, 
                   width=1200)
         st.plotly_chart(fig)
-
