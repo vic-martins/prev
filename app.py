@@ -10,6 +10,7 @@ import plotly.graph_objects as go
 from plotly.colors import n_colors
 import plotly.express as px
 import plotly.offline as pyo
+pyo.init_notebook_mode()
 
 import streamlit as st
 
@@ -23,6 +24,7 @@ st.markdown('''
 Victor Martins
 ''')
 
+#@st.cache()
 df = pd.read_csv('forecast.csv')
 
 df = df.rename(columns={'y': 'real',
@@ -76,38 +78,50 @@ st.write(soma_previsoes)
 
 df23['geom_dist'] = df23['previsto'] / soma_previsoes
 
-valor_dist = st.number_input('Insira o montante', min_value=100000, max_value=10000000, value=1000000, step=100000)
+# Create an empty dictionary
 
-df23['dist_custom'] = df23['geom_dist'] * valor_dist
+cenarios = {}
+
+c1, c2, c3 = st.columns(3)
+cen1 = c1.text_input("Nome do cenário 1", value='Realista')
+valor1 = c1.number_input("Montante 1", value = 1000000, min_value = 100000, max_value = 10000000, step = 1000000)
+
+cen2 = c2.text_input("Nome do cenário 2", value='Pessimista')
+valor2 = c2.number_input("Montante 2", value = 800000, min_value = 100000, max_value = 10000000, step = 1000000)
+
+cen3 = c3.text_input("Nome do cenário 3", 'Otimista')
+valor3 = c3.number_input("Montante 3", value = 1300000, min_value = 100000, max_value = 10000000, step = 1000000)
 
 mae = 3613
 
-df23['yhat_upper'] = df23['dist_custom'] + mae
-df23['yhat_lower'] = df23['dist_custom'] - mae
-df23.loc[df23['yhat_lower'] < 0, 'yhat_lower'] = 0
-
 fig = go.Figure()
 
-fig.add_trace(go.Line(x=df23['data'], 
-                      y=df23['dist_custom'], 
-                      line=dict(color='deeppink'),
-                      name='Cenário'))
+def GeraCurva(cen, valor, cor):
+    df23['dist_' + cen] = df23['geom_dist'] * valor
+    df23['yhat_upper_' + cen] = df23['dist_' + cen] + mae
+    df23['yhat_lower_' + cen] = df23['dist_' + cen] - mae
+    df23.loc[df23['yhat_lower_' + cen] < 0, 'yhat_lower_' + cen] = 0
+    fig.add_trace(go.Line(x=df23['data'], 
+                          y=df23['dist_' + cen], 
+                          line=dict(color=cor),
+                          name='Cenário ' + cen))
+    fig.add_trace(go.Line(x=df23['data'], 
+                          y=df23['yhat_upper_' + cen], 
+                          line=dict(color=cor, dash='dot'),
+                          opacity=0.35,
+                          showlegend=False))
+    fig.add_trace(go.Line(x=df23['data'], 
+                          y=df23['yhat_lower_'+ cen], 
+                          line=dict(color=cor, dash='dot'),
+                          opacity=0.35,
+                          showlegend=False))
 
-fig.add_trace(go.Line(x=df23['data'], 
-                      y=df23['yhat_upper'], 
-                      line=dict(color='slategray', dash='dot'),
-                      opacity=0.7,
-                      showlegend=False))
-
-fig.add_trace(go.Line(x=df23['data'], 
-                      y=df23['yhat_lower'], 
-                      line=dict(color='slategray', dash='dot'),
-                      opacity=0.7,
-                      showlegend=False))
-
-fig.update_layout(title='Curva customizada',
+if st.button("Gerar distribuições"):
+        GeraCurva(cen1, valor1, 'deeppink')
+        GeraCurva(cen2, valor2, 'red')
+        GeraCurva(cen3, valor3, 'pink')
+        fig.update_layout(title='Curvas customizadas',
                   height=500, 
                   width=1200)
-
-st.plotly_chart(fig)
+        st.plotly_chart(fig)
 
