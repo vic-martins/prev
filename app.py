@@ -94,6 +94,13 @@ mae = 3613
 
 fig = go.Figure()
 
+limite = st.number_input("Limite", value = 25000, min_value = 100, max_value = 1000000, step = 100)
+
+fig.add_hline(y=limite,
+              line_dash='dot',
+              annotation_text='Limite', 
+              annotation_position='bottom right')
+
 def GeraCurva(cen, valor, cor):
     df23['dist_' + cen] = df23['geom_dist'] * valor
     df23['yhat_upper_' + cen] = df23['dist_' + cen] + mae
