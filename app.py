@@ -141,29 +141,30 @@ def GeraCurva(df, cen, valor, cor, h):
     
     if achatar == True:
         df = Redistribui('dist_', cen, df, limite)
-        topo = df.loc[df['topou' + cen] == 1]
-        inicio = str(topo['data'].loc[topo['data'].idxmin()].date())
-        fim = str(topo['data'].loc[topo['data'].idxmax()].date())
+        if df['topou' + cen].sum()>0:
+            topo = df.loc[df['topou' + cen] == 1]
+            inicio = str(topo['data'].loc[topo['data'].idxmin()].date())
+            fim = str(topo['data'].loc[topo['data'].idxmax()].date())
+            if picos == True:
+                fig.add_annotation(x=inicio,
+                           y=limite,
+                           text=inicio[5:],
+                           showarrow=True,
+                           arrowhead=1,
+                           ax=-15,
+                           ay=h,
+                           arrowcolor=cor)
+                fig.add_annotation(x=fim,
+                                   y=limite,
+                                   text=fim[5:],
+                                   showarrow=True,
+                                   arrowhead=1,
+                                   ax=15,
+                                   ay=h,
+                                   arrowcolor=cor)
         df = Redistribui('yhat_upper_', cen, df, limite)
         df = Redistribui('yhat_lower_', cen, df, limite)
-        if picos == True:
-            fig.add_annotation(x=inicio,
-                       y=limite,
-                       text=inicio[5:],
-                       showarrow=True,
-                       arrowhead=1,
-                       ax=-15,
-                       ay=h,
-                       arrowcolor=cor)
-            fig.add_annotation(x=fim,
-                               y=limite,
-                               text=fim[5:],
-                               showarrow=True,
-                               arrowhead=1,
-                               ax=15,
-                               ay=h,
-                               arrowcolor=cor)
-    
+
     fig.add_trace(
         go.Line(x=df['data'],
                 y=df['dist_' + cen],
