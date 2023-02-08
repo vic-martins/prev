@@ -100,7 +100,7 @@ valor3 = c3.number_input("Montante 3",
                          max_value=10000000,
                          step=1000000)
 
-mae = 3229
+mae = 2999
 
 fig = go.Figure()
 
