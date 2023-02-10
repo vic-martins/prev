@@ -294,8 +294,8 @@ def page2():
 def page3():
     df = pd.read_csv('estudo.csv')
     c1, c2 = st.columns([4,1])
-    c1.write('### Estatísticas do pico')
-    pico = df.loc[df['ds'].between('2022-10-05', '2022-12-28')]
+    c1.write('### Estatísticas dio pico (10/05/2022 a 01/12/2022)')
+    pico = df.loc[df['ds'].between('2022-10-05', '2022-12-01')]
     c1.table(pico.describe())
     c2.write('### Somas do ano')
     c2.table(df.iloc[:, 1:].sum())
