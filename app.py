@@ -86,6 +86,9 @@ def page1():
     st.write(soma_previsoes)
  
 def page2():
+    df_pico = pd.read_csv('estudo.csv')
+    df_pico = df_pico.loc[df_pico['ds'].between('2022-10-05', '2022-12-01')]
+    df_pico = df_pico.describe().reset_index()
     df23 = df.loc[df['data'].dt.year == 2023]
     soma_previsoes = sum(df23['previsto'])
     df23['geom_dist'] = df23['previsto'] / soma_previsoes
@@ -112,7 +115,7 @@ def page2():
                              max_value=10000000,
                              step=100000)
 
-    mae = 2999
+    mae = 3100
 
     fig = go.Figure()
 
@@ -124,6 +127,13 @@ def page2():
 
     achatar = st.sidebar.checkbox('Achatar a curva')
     picos = st.sidebar.checkbox('Denotar picos')
+    usar_est = st.sidebar.checkbox('Utilizar estatísticas')
+    if usar_est:
+        lim = st.sidebar.radio('Eststística do limite:', ['Máximo', 'Quantil 75%'])
+        if lim == 'Máximo':
+            est = 7
+        else: 
+            est = 6
 
     def Redistribui(col, cen, df, limite):
         col = col + cen
@@ -140,10 +150,10 @@ def page2():
                 dif = 0
         return df
 
-    def GeraCurva(df, cen, valor, limite, cor, h):
+    def GeraCurva(df, cen, valor, limite, cor, h, std):
         df['dist_' + cen] = df['geom_dist'] * valor
-        df['yhat_upper_' + cen] = df['dist_' + cen] + mae
-        df['yhat_lower_' + cen] = df['dist_' + cen] - mae
+        df['yhat_upper_' + cen] = df['dist_' + cen] + std
+        df['yhat_lower_' + cen] = df['dist_' + cen] - std
         df.loc[df['yhat_lower_' + cen] < 0, 'yhat_lower_' + cen] = 0
 
         if achatar == True:
@@ -154,14 +164,17 @@ def page2():
                 fim = str(topo['data'].loc[topo['data'].idxmax()].date())
                 if picos == True:
                     fig.add_annotation(x=inicio,
-                               y=limite,
-                               text=inicio[5:],
-                               showarrow=True,
-                               arrowhead=1,
-                               ax=-15,
-                               ay=h,
-                               arrowcolor=cor)
+                                       yclick=limite,
+                                       clicktoshow='onoff',
+                                       y=limite,
+                                       text=inicio[5:],
+                                       showarrow=True,
+                                       arrowhead=1,
+                                       ax=-15,
+                                       ay=h,
+                                       arrowcolor=cor)
                     fig.add_annotation(x=fim,
+                                       clicktoshow='onoff',
                                        y=limite,
                                        text=fim[5:],
                                        showarrow=True,
@@ -171,19 +184,20 @@ def page2():
                                        arrowcolor=cor)
             df = Redistribui('yhat_upper_', cen, df, limite)
             df = Redistribui('yhat_lower_', cen, df, limite)
-
-        fig.add_hline(
-            y=limite,
-            line_color=cor,
-            line_dash='dot',
-            annotation_text='Limite',
-            annotation_position='bottom right')
-
+            
+        df['limite'] = limite
+        fig.add_trace(
+            go.Scatter(x=df['data'],
+                    y=df['dist_' + cen],
+                    line=dict(color=cor, width=2.5),
+                    name=cen))
+                
         fig.add_trace(
             go.Line(x=df['data'],
-                    y=df['dist_' + cen],
-                    line=dict(color=cor),
-                    name=cen))
+                    y=df['limite'],
+                    line=dict(color=cor, dash='dot'),
+                    line_dash='dot',
+                    name='limite'))
         fig.add_trace(
             go.Line(x=df['data'],
                     y=df['yhat_upper_' + cen],
@@ -201,9 +215,9 @@ def page2():
     colors = px.colors.qualitative.Alphabet
 
     if st.button("Gerar distribuição de cenários"):
-        df23 = GeraCurva(df23, cen1, valor1, limite, colors[1], -40)
-        df23 = GeraCurva(df23, cen2, valor2, limite, colors[2], -60)
-        df23 = GeraCurva(df23, cen3, valor3, limite, colors[3], -80)
+        df23 = GeraCurva(df23, cen1, valor1, limite, colors[1], -40, mae)
+        df23 = GeraCurva(df23, cen2, valor2, limite, colors[2], -60, mae)
+        df23 = GeraCurva(df23, cen3, valor3, limite, colors[3], -80, mae)
         fig.update_layout(title='Curvas customizadas', height=500, width=1200)
         st.plotly_chart(fig)
 
@@ -273,23 +287,49 @@ def page2():
 
     if pct_total != 100:
         st.write(f'Porcentagem total: {pct_total} ❌')
-
+    
     if st.button("Gerar distribuições de curvas"):
         fig = go.Figure()
         if pct1>0:
-            df23 = GeraCurva(df23, g1, (pct1/100)*montante, (pct1/100)*limite, colors[-1], -60)
+            if usar_est == True:
+                limite_gr = df_pico['1'][est]
+            else:
+                limite_gr = (pct1/100)*limite
+            df23 = GeraCurva(df23, g1, (pct1/100)*montante, limite_gr, colors[-1], -40, df_pico['1'][2])
         if pct2>0:
-            df23 = GeraCurva(df23, g2, (pct2/100)*montante, (pct2/100)*limite, colors[-2], -60)
+            if usar_est == True:
+                limite_gr = df_pico['2'][est]
+            else:
+                limite_gr = (pct2/100)*limite
+            df23 = GeraCurva(df23, g2, (pct2/100)*montante, limite_gr, colors[-2], -40, df_pico['2'][2])
         if pct3>0:
-            df23 = GeraCurva(df23, g3, (pct3/100)*montante, (pct3/100)*limite, colors[-3], -60)
+            if usar_est == True:
+                limite_gr = df_pico['3'][est]
+            else:
+                limite_gr = (pct3/100)*limite
+            df23 = GeraCurva(df23, g3, (pct3/100)*montante, limite_gr, colors[-3], -40, df_pico['3'][2])
         if pct4>0:
-            df23 = GeraCurva(df23, g4, (pct4/100)*montante, (pct4/100)*limite, colors[-4], -60)
+            if usar_est == True:
+                limite_gr = df_pico['4'][est]
+            else:
+                limite_gr = (pct4/100)*limite
+            df23 = GeraCurva(df23, g4, (pct4/100)*montante, limite_gr, colors[-4], -40, df_pico['4'][2])
         if pct5>0:
-            df23 = GeraCurva(df23, g5, (pct5/100)*montante, (pct5/100)*limite, colors[-5], -60)
+            if usar_est == True:
+                limite_gr = df_pico['5'][est]
+            else:
+                limite_gr = (pct5/100)*limite
+            df23 = GeraCurva(df23, g5, (pct5/100)*montante, limite_gr, colors[-5], -40, df_pico['5'][2])
         if pct6>0:
-            df23 = GeraCurva(df23, g6, (pct6/100)*montante, (pct6/100)*limite, colors[-6], -60)
+            if usar_est == True:
+                limite_gr = df_pico['6'][est]
+            else:
+                limite_gr = (pct6/100)*limite
+            df23 = GeraCurva(df23, g6, (pct6/100)*montante, limite_gr, colors[-6], -40, df_pico['6'][2])
+        
         fig.update_layout(title='Curvas customizadas', height=500, width=1200)
         st.plotly_chart(fig)
+        
 
 def page3():
     df = pd.read_csv('estudo.csv')
