@@ -129,7 +129,7 @@ def page2():
     picos = st.sidebar.checkbox('Denotar picos')
     usar_est = st.sidebar.checkbox('Utilizar estatísticas')
     if usar_est:
-        lim = st.sidebar.radio('Eststística do limite:', ['Máximo', 'Quantil 75%'])
+        lim = st.sidebar.radio('Estatística do limite:', ['Máximo', 'Quantil 75%'])
         if lim == 'Máximo':
             est = 7
         else: 
