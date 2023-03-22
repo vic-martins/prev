@@ -233,7 +233,7 @@ def page2():
                                     upper: 'limiar_superior',
                                     lower: 'limiar_inferior'})
         csv = csv.round(0)
-        csv[['dist', 'upper', 'lower']] = csv[['dist', 'upper', 'lower']].astype(int)
+        csv[[dist, upper, lower]] = csv[[dist, upper, lower]].astype(int)
         csv = convert_df(csv)
         st.download_button("Baixar dados do cenário 1",
                            csv,
