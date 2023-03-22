@@ -232,10 +232,11 @@ def page2():
         csv = csv.rename(columns = {dist: 'previsao',
                                     upper: 'limiar_superior',
                                     lower: 'limiar_inferior'})
+        csv = csv.round(0)
         csv = convert_df(csv)
         st.download_button("Baixar dados do cenário 1",
                            csv,
-                           "file.csv",
+                           "modelagem.csv",
                            "text/csv",
                            key='download-csv')
 
