@@ -221,23 +221,23 @@ def page2():
         fig.update_layout(title='Curvas customizadas', height=500, width=1200)
         st.plotly_chart(fig)
         
-    def convert_df(df):
-      return df.to_csv(index=False).encode('utf-8')
-    
-    dist = 'dist_' + cen1
-    upper = 'yhat_upper_' + cen1
-    lower = 'yhat_lower_' + cen1
-    st.table(df23.head())
-    st.write(dist, upper, lower)
-    csv = df23[['data', dist, upper, lower]][:]
-    csv = convert_df(csv)
+        dist = 'dist_' + cen1
+        upper = 'yhat_upper_' + cen1
+        lower = 'yhat_lower_' + cen1
         
-    st.download_button(
-      "Baixar dados do cenário 1",
-      csv,
-      "file.csv",
-      "text/csv",
-      key='download-csv')
+        def convert_df(df):
+          return df.to_csv(index=False).encode('utf-8')
+        
+        csv = df23[['data', dist, upper, lower]][:]
+        csv = csv.rename(columns: {dist: 'previsao'
+                                   upper: 'limiar_superior'
+                                   lower: 'limiar_inferior'})
+        csv = convert_df(csv)
+        st.download_button("Baixar dados do cenário 1",
+                           csv,
+                           "file.csv",
+                           "text/csv",
+                           key='download-csv')
 
     montante = st.number_input(
         "Montante",
