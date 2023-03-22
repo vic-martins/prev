@@ -229,9 +229,9 @@ def page2():
           return df.to_csv(index=False).encode('utf-8')
         
         csv = df23[['data', dist, upper, lower]][:]
-        csv = csv.rename(columns: {dist: 'previsao'
-                                   upper: 'limiar_superior'
-                                   lower: 'limiar_inferior'})
+        csv = csv.rename(columns = {dist: 'previsao',
+                                    upper: 'limiar_superior',
+                                    lower: 'limiar_inferior'})
         csv = convert_df(csv)
         st.download_button("Baixar dados do cenário 1",
                            csv,
