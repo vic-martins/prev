@@ -220,6 +220,21 @@ def page2():
         df23 = GeraCurva(df23, cen3, valor3, limite, colors[3], -80, mae)
         fig.update_layout(title='Curvas customizadas', height=500, width=1200)
         st.plotly_chart(fig)
+        
+    def convert_df(df):
+      return df.to_csv(index=False).encode('utf-8')
+    
+    dist = 'dist_' + cen1
+    upper = 'yhat_upper_' + cen1
+    lower = 'yhat_lower_' + cen1
+    csv = convert_df(df23[['data', dist, upper, lower]])
+        
+    st.download_button(
+      "Baixar dados do cenário 1",
+      csv,
+      "file.csv",
+      "text/csv",
+      key='download-csv')
 
     montante = st.number_input(
         "Montante",
