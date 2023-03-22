@@ -227,7 +227,7 @@ def page2():
     dist = 'dist_' + cen1
     upper = 'yhat_upper_' + cen1
     lower = 'yhat_lower_' + cen1
-    st.table(df23['dist_Pessimista'])
+    st.table(df23.head())
     st.write(dist, upper, lower)
     csv = df23[['data', dist, upper, lower]][:]
     csv = convert_df(csv)
