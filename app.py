@@ -212,7 +212,7 @@ def page2():
                     name='limiar inferior'))
         return df
 
-    colors = px.colors.qualitative.Dark24
+    colors = px.colors.qualitative.Bold
 
     if st.button("Gerar distribuição de cenários"):
         df23 = GeraCurva(df23, cen1, valor1, limite, colors[1], -40, mae)
